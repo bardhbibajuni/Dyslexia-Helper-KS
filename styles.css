@@ -1,0 +1,35 @@
+:root {
+    --dys-font-family: inherit;
+    --dys-letter-spacing: normal;
+    --dys-word-spacing: normal;
+    --dys-bg-color: #fef3c7;
+
+}
+
+.dyslexia-helper-active,
+.dyslexia-helper-active * {
+    font-family: var(--dys-font-family) !important;
+    letter-spacing: var(--dys-letter-spacing) !important;
+    word-spacing: var(--dys-word-spacing) !important;
+}
+
+body.dyslexia-helper-bg {
+    background-color: var(--dys-bg-color) !important;
+}
+
+body.dyslexia-helper-bg main,
+body.dyslexia-helper-bg article,
+body.dyslexia-helper-bg section,
+body.dyslexia-helper-bg #content,
+body.dyslexia-helper-bg .mw-body,
+body.dyslexia-helper-bg .content,
+body.dyslexia-helper-bg p,
+body.dyslexia-helper-bg li,
+body.dyslexia-helper-bg h1,
+body.dyslexia-helper-bg h2,
+body.dyslexia-helper-bg h3,
+body.dyslexia-helper-bg h4,
+body.dyslexia-helper-bg h5,
+body.dyslexia-helper-bg h6 {
+    background-color: var(--dys-bg-color) !important;
+}

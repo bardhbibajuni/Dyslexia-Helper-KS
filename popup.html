@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dyslexia Helper</title>
+    <link rel="stylesheet" href="popup.css" />
+    <script src="popup.js" defer></script>
+</head>
+
+<body>
+    <main class="popup-container" id="popupContainer">
+
+        <!-- ===== MAIN VIEW ===== -->
+        <div id="mainView" class="view active-view" aria-hidden="false">
+
+            <header class="header">
+                <div class="header-top">
+                    <div>
+                        <h1 class="main-title">Dyslexia Helper</h1>
+                        <p class="subtitle">Make any website easier to read.</p>
+                    </div>
+                    <span class="badge">Beta</span>
+                </div>
+
+                <div class="header-meta">
+                    <p class="header-note">
+                        Adjust font, spacing, and background — auto-saved instantly.
+                    </p>
+
+                    <div class="header-actions">
+                        <button class="btn-reset-mini" id="resetBtn" type="button" title="Reset settings">
+                            Reset
+                        </button>
+
+                        <div class="save-indicator" id="saveIndicator" aria-live="polite">
+                            <span class="dot"></span>
+                            <span class="text">Saved</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Quick presets -->
+            <section class="section">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h2>Quick presets</h2>
+                        <p class="section-description">One click setup. You can tweak after.</p>
+                    </div>
+                </div>
+
+                <div class="presets">
+                    <button class="preset-btn" type="button" data-preset="default">Default</button>
+                    <button class="preset-btn" type="button" data-preset="balanced">Balanced</button>
+                    <button class="preset-btn" type="button" data-preset="strong">Strong</button>
+                </div>
+            </section>
+
+            <!-- Enable/disable -->
+            <section class="section">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h2>Extension status</h2>
+                        <p class="section-description">Turn the helper on or off for all sites.</p>
+                    </div>
+
+                    <div class="toggle" id="mainToggle" role="switch" aria-checked="false" tabindex="0">
+                        <div class="toggle-off">OFF</div>
+                        <div class="toggle-on">ON</div>
+                    </div>
+                </div>
+
+                <div class="hint-row">
+                    <span class="hint-dot"></span>
+                    <span class="hint-text">Tip: turn it ON, then pick a preset.</span>
+                </div>
+            </section>
+
+            <!-- Font -->
+            <section class="section">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h2>Font style</h2>
+                        <p class="section-description">
+                            Dyslexia-friendly fonts like <strong>OpenDyslexic</strong> and <strong>Lexend</strong> can
+                            improve readability.
+                        </p>
+                    </div>
+                </div>
+
+                <label class="field-label" for="fontSelect">Choose a font</label>
+                <select id="fontSelect" class="dropdown">
+                    <option>Original Font</option>
+                    <option>OpenDyslexic</option>
+                    <option>Lexend</option>
+                    <option>Comic Sans</option>
+                    <option>Arial</option>
+                </select>
+
+                <div class="preview-box font-preview">
+                    <p class="preview-label">Font preview</p>
+                    <p class="preview-text" id="fontPreviewText">Aa Bb Cc Dd Ee</p>
+                    <p class="preview-subtext">This is how body text will look with the selected font.</p>
+                </div>
+            </section>
+
+            <!-- Letter spacing -->
+            <section class="section">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <div class="title-row">
+                            <h2>Letter spacing</h2>
+                            <span class="value-chip" id="letterValue">0 px</span>
+                        </div>
+                        <p class="section-description">Add more space between individual letters.</p>
+                    </div>
+                </div>
+
+                <div class="slider-row">
+                    <div class="slider-labels">
+                        <span>0</span><span>5</span><span>10</span>
+                    </div>
+                    <div class="slider">
+                        <div class="slider-bar" id="letterBar">
+                            <div class="slider-circle" id="letterCircle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-box spacing-preview">
+                    <p class="preview-label">Preview</p>
+                    <p class="preview-text" id="letterSpacingPreview">
+                        This sample text shows how extra letter spacing changes the reading experience.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Word spacing -->
+            <section class="section">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <div class="title-row">
+                            <h2>Word spacing</h2>
+                            <span class="value-chip" id="wordValue">0 px</span>
+                        </div>
+                        <p class="section-description">Increase the space between words to reduce crowding.</p>
+                    </div>
+                </div>
+
+                <div class="slider-row">
+                    <div class="slider-labels">
+                        <span>0</span><span>15</span><span>30</span>
+                    </div>
+                    <div class="slider">
+                        <div class="slider-bar" id="wordBar">
+                            <div class="slider-circle" id="wordCircle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-box spacing-preview">
+                    <p class="preview-label">Preview</p>
+                    <p class="preview-text" id="wordSpacingPreview">
+                        This sample text shows how extra word spacing can make paragraphs more comfortable to read.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Background -->
+            <section class="section">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h2>Background color</h2>
+                        <p class="section-description">Softer backgrounds can reduce eye strain.</p>
+                    </div>
+                </div>
+
+                <div class="colors">
+                    <button class="color-option" type="button">White</button>
+                    <button class="color-option active" type="button">Beige</button>
+                    <button class="color-option" type="button">Grey</button>
+                    <button class="color-option" type="button">Blue</button>
+                </div>
+            </section>
+
+            <!-- ===== TERMS ACCEPT SECTION (BOTTOM) ===== -->
+            <section class="section terms-accept" id="termsAcceptSection">
+                <div class="terms-required-banner" id="termsRequiredBanner" role="alert" aria-live="polite">
+                    <strong>Action required</strong><br />
+                    Accept the Terms &amp; Conditions to turn the extension ON.
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h2>Terms acceptance</h2>
+                        <p class="section-description">
+                            Please read the
+                            <button class="terms-link" id="openTermsInline" type="button">Terms &amp;
+                                Conditions</button>
+                            and then accept below.
+                        </p>
+                        <p class="section-description small">
+                            You must accept to enable the extension.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ✅ Checkbox UI -->
+                <div class="terms-check-row">
+                    <label class="terms-check" for="termsCheckbox">
+                        <input type="checkbox" id="termsCheckbox" />
+                        <span class="terms-check-ui" aria-hidden="true"></span>
+                        <span class="terms-check-text">I accept the Terms &amp; Conditions</span>
+                    </label>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <p class="footer-note" style="text-align:center;">
+                    © 2026 Dyslexia Helper. All rights reserved.
+                    <button class="footer-terms-link" id="openTermsFooter" type="button">
+                        Terms &amp; Conditions
+                    </button>
+                </p>
+            </footer>
+        </div>
+
+        <!-- ===== TERMS VIEW ===== -->
+        <div id="termsView" class="view" aria-hidden="true">
+            <header class="header terms-header">
+                <div class="terms-header-row">
+                    <button class="btn-back" id="backBtn" type="button" aria-label="Back to main">← Back</button>
+                    <div class="terms-title-wrap">
+                        <h1 class="main-title">Terms &amp; Conditions</h1>
+                        <p class="subtitle">Dyslexia Helper</p>
+                    </div>
+                </div>
+                <p class="header-note">Please read these terms carefully before using the extension.</p>
+            </header>
+
+            <section class="section terms-section">
+                <div class="terms-clip">
+                    <div class="terms-content">
+                        <h2>1. Acceptance of Terms</h2>
+                        <p>
+                            By installing, accessing, or using the Dyslexia Helper application or Chrome Extension, you
+                            agree
+                            to be bound by these Terms and Conditions. If you do not agree with any part of these terms,
+                            you
+                            must discontinue use immediately.
+                        </p>
+
+                        <h2>2. Governing Law and Compliance</h2>
+                        <p>
+                            Dyslexia Helper is developed and operated in accordance with the laws of the Republic of
+                            Kosovo
+                            and complies with the policies and requirements of the Google Chrome Web Store. In case of
+                            conflict, Google Chrome Web Store policies and applicable laws shall prevail.
+                        </p>
+                        <p>Dyslexia Helper operates under:</p>
+                        <ul>
+                            <li>Republic of Kosovo Law (Law No. 06/L-082 on Data Protection)</li>
+                            <li>EU GDPR Principles (Articles 5 and 13 – Data Minimization, Transparency)</li>
+                            <li>Google Chrome Web Store Policies (which prevail in case of conflicts)</li>
+                        </ul>
+
+                        <h2>3. Purpose of the Extension</h2>
+                        <p>
+                            The primary purpose of Dyslexia Helper is to enhance accessibility and readability of
+                            digital
+                            content, particularly for individuals with dyslexia or reading difficulties. The extension
+                            is
+                            intended for personal and non-commercial use only and does not guarantee specific outcomes
+                            for
+                            every user.
+                        </p>
+
+                        <h2>4. User Responsibilities</h2>
+                        <p>
+                            Users agree to use Dyslexia Helper responsibly and solely for lawful purposes. Prohibited
+                            activities include, but are not limited to:
+                        </p>
+                        <ul>
+                            <li>Unauthorized access or use of the extension</li>
+                            <li>Technical interference or disruption of services</li>
+                            <li>Modification, copying, or redistribution without prior written consent from the
+                                developers
+                            </li>
+                        </ul>
+
+                        <h2>5. Intellectual Property</h2>
+                        <p>
+                            All intellectual property rights related to Dyslexia Helper, including but not limited to
+                            source
+                            code, design, functionalities, fonts, and trademarks, are the exclusive property of the
+                            developers
+                            (University of Prishtina FIEK) and are protected under applicable intellectual property laws
+                            of
+                            the Republic of Kosovo and international conventions.
+                        </p>
+                        <p><strong>Licenses &amp; Permissions:</strong></p>
+                        <ul>
+                            <li><strong>Code:</strong> MIT License (modify/distribute freely for non-commercial use
+                                only)
+                            </li>
+                            <li><strong>Fonts:</strong> OpenDyslexic/Lexend (OFL License - open font licenses)</li>
+                        </ul>
+                        <p>
+                            No part of the extension may be reused, copied, modified, or distributed without proper
+                            attribution
+                            and compliance with the above licenses. Written authorization required for any commercial
+                            use or
+                            resale.
+                        </p>
+
+                        <h2>6. Privacy and Data Protection</h2>
+                        <p>
+                            Dyslexia Helper respects user privacy. The extension does not collect or process personal
+                            data
+                            without the user’s consent. Usage is also subject to the Privacy Policy, which explains how
+                            data
+                            is handled in compliance with Google Chrome Web Store requirements and applicable data
+                            protection
+                            regulations.
+                        </p>
+                        <p>
+                            For more details, please review the official Chrome Web Store Privacy Policy, which governs
+                            extensions published on the platform.
+                        </p>
+
+                        <h2>7. Disclaimer of Warranties</h2>
+                        <p>
+                            The extension is provided “as is”, without any express or implied warranties. The developers
+                            are
+                            not liable for:
+                        </p>
+                        <ul>
+                            <li>Technical errors or service interruptions</li>
+                            <li>Data loss or corruption</li>
+                            <li>Any direct, indirect, incidental, or consequential damages arising from the use or
+                                inability
+                                to use Dyslexia Helper</li>
+                        </ul>
+
+                        <h2>8. Modifications to Terms</h2>
+                        <p>
+                            Developers reserve the right to modify or update these Terms and Conditions at any time to
+                            reflect legal,
+                            technical, or platform-related changes.
+                        </p>
+                        <p>Users will be notified at least 21 days in advance of any material changes via:</p>
+                        <ul>
+                            <li>Chrome Web Store update notification</li>
+                            <li>Extension popup notification (version changelog)</li>
+                            <li>GitHub repository release notes</li>
+                        </ul>
+                        <p>
+                            Updated Terms take effect 21 days after notification publication. Continued use after this
+                            period constitutes acceptance.
+                            Users may uninstall anytime during the notice period. Minor/clarification updates may take
+                            effect immediately without prior notice.
+                        </p>
+
+                        <h2>9. Suspension or Termination of Access</h2>
+                        <p>
+                            User access to Dyslexia Helper may be suspended or terminated if these Terms and Conditions
+                            or
+                            Google Chrome Web Store policies are violated.
+                        </p>
+
+                        <h2>10. Availability of Terms</h2>
+                        <p>These Terms and Conditions are made available in multiple locations, including:</p>
+                        <ul>
+                            <li>The Chrome Web Store listing</li>
+                            <li>Within the extension interface</li>
+                            <li>GitHub README</li>
+                        </ul>
+
+                        <h2>11. Reporting Bugs and Providing Feedback</h2>
+                        <p>Users are encouraged to help improve Dyslexia Helper by reporting bugs or sharing feedback.
+                        </p>
+                        <ul>
+                            <li><strong>Bug Reports:</strong> If you encounter technical issues, errors, or
+                                malfunctions,
+                                please report them to the developers with a clear description of the problem.</li>
+                            <li><strong>Feedback:</strong> Suggestions for improvements, new features, or general user
+                                experience comments are welcome.</li>
+                        </ul>
+                        <p>
+                            Reports and feedback can be submitted through the official Chrome Web Store listing page or
+                            by
+                            contacting the developers directly:
+                        </p>
+                        <p>
+                            <strong>Number:</strong> +383 43 877 793<br />
+                            <strong>Contact:</strong> DyslexiaHelper@gmail.com<br />
+                            <strong>Organization:</strong> FIEK, University of Prishtina
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </main>
+</body>
+
+</html>
