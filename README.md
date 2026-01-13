@@ -1,116 +1,46 @@
-# Dyslexia-Extension - Browser Extension
+# Dyslexia Helper (Chrome Extension)
 
-Dyslexia Helper is a browser extension created to improve reading accessibility on the web.  
-It allows users to customize how text appears on any website by adjusting font type, spacing, and background color, making reading more comfortable for people with dyslexia or reading difficulties.
-
-The extension works in real time, does not modify website content permanently, and stores user preferences locally.
-
----
+Dyslexia Helper makes websites easier to read by applying dyslexia-friendly fonts, spacing, and softer background colors.
 
 ## Features
+- Fonts: Original, OpenDyslexic, Lexend, Comic Sans, Arial
+- Letter spacing + word spacing controls
+- Background color presets to reduce eye strain
+- Quick presets: Default / Balanced / Strong
+- One-time Terms & Conditions acceptance before enabling
+- Settings saved locally in the browser
 
-- Turn the extension ON or OFF with a single toggle  
-- Dyslexia-friendly fonts:
-  - OpenDyslexic,
-  - Lexend,
+## How it works
+The popup lets users choose readability settings. A content script applies those settings to the current page by updating CSS variables and page styles. Preferences are stored using `chrome.storage.local`.
 
-- Adjustable letter spacing,
-- Adjustable word spacing,
-- Optional background colors (white, beige, grey, blue),
-- Live preview inside the popup interface,
-- Changes apply instantly without page refresh,
-- Preferences are saved automatically,
-- Works on all websites
+## Permissions
+- `storage` — save user settings (enabled state, font, spacing, background, terms acceptance)
+- `activeTab` — apply settings to the currently active tab when the popup is used
+- `scripting` — inject the content script/styles into the active tab if needed (first-time use)
 
----
+> Note: Chrome blocks extensions from running on certain pages like `chrome://` and Chrome Web Store pages.
 
-## Technologies Used
+## Installation (Development)
+1. Download or clone this repository
+2. Open `chrome://extensions`
+3. Enable **Developer mode**
+4. Click **Load unpacked**
+5. Select the project folder
 
-- HTML – popup interface structure  ,
-- CSS – styling for popup and webpage content  ,
-- JavaScript – logic, interaction, and state management  ,
-- Chrome Extension API:
-  - `chrome.storage.sync`
-  - `content_scripts`
-- Manifest Version 3
+## Usage
+1. Open the extension popup
+2. Read Terms & Conditions
+3. Check “I accept the Terms & Conditions”
+4. Turn the extension ON
+5. Pick a preset or customize settings
 
-No external frameworks or libraries are used.
+## Privacy
+Dyslexia Helper does not collect, sell, or share personal data. All settings are stored locally in the browser using Chrome extension storage.
 
----
+## Support
+Email: DyslexiaHelper@gmail.com  
+Issues: (add your GitHub issues link if you have one)
 
-## Project Structure
-
-- `
-/
-├── manifest.json
-├── popup.html
-├── popup.css
-├── popup.js
-├── content.js
-├── styles.css
-└── fonts/
-    ├── OpenDyslexic-Regular.otf
-    └── Lexend-Regular.ttf
-  `
-  
-How It Works
-
-popup.js
-Handles the user interface, reads user input, updates previews, and saves settings.
-
-content.js
-Runs on every webpage, reads saved settings, and applies font, spacing, and background styles dynamically.
-
-styles.css
-Uses CSS variables and class-based overrides to safely apply styles on different websites.
-
-
-Download & Installation (Developer Mode)
-
-Option 1: Download as ZIP
-Click the Code button on this repository,
-Select Download ZIP,
-Extract the ZIP file on your computer,
-
-Option 2: Clone with Git
-git clone https://github.com/bardhbibajuni/dyslexia-extension.git
-
-
-Install the Extension in Chrome
-Open Google Chrome,
-Go to chrome://extensions,
-Enable Developer mode (top-right corner),
-Click Load unpacked
-Select the project folder,
-The extension will appear in the browser toolbar
-
-
-Usage
-Click the Dyslexia Extension icon,
-Turn the extension ON,
-Choose a font,
-Adjust letter and word spacing,
-Select a background color (optional),
-Changes apply immediately,
-Settings are saved automatically and reused on future visits
-
-
-Target Users
-People with dyslexia,
-Students with reading difficulties,
-Educators and academic users,
-Anyone who prefers customizable reading environments
-
-
-License
-MIT License
-Free to use, modify, and distribute.
-
-
-Contributors:
-Aulona Xhema,
-Aurela Kajtazi,
-Bardh Bibaj,
-Bledar Morina
-
-University of Prishtina “Hasan Prishtina”
+## Licenses
+- Fonts: OpenDyslexic and Lexend are distributed under open font licenses (OFL).
+- Code: choose a license (MIT recommended) and include a `LICENSE` file.
