@@ -1,38 +1,31 @@
 {
-    "manifest_version": 3,
-    "name": "Dyslexia Extension",
-    "version": "1.0",
-    "description": "Make any website easier to read with dyslexia-friendly fonts, spacing, and soft background colors.",
-    "permissions": [
-        "storage",
-        "scripting",
-        "activeTab"
-    ],
-    "action": {
-        "default_popup": "popup.html"
-    },
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "content.js"
-            ],
-            "css": [
-                "styles.css"
-            ],
-            "run_at": "document_idle"
-        }
-    ],
-    "web_accessible_resources": [
-        {
-            "resources": [
-                "fonts/*"
-            ],
-            "matches": [
-                "<all_urls>"
-            ]
-        }
-    ]
+  "manifest_version": 3,
+  "name": "Dyslexia Helper",
+  "version": "1.0",
+  "description": "Make any website easier to read with dyslexia-friendly fonts, spacing, and soft background colors.",
+  "permissions": ["storage", "scripting"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "exclude_matches": [
+        "https://chrome.google.com/webstore/*",
+        "https://chromewebstore.google.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "fonts/OpenDyslexic-Regular.otf",
+        "fonts/Lexend-Regular.ttf"
+      ],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ]
 }
