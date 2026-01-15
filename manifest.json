@@ -1,31 +1,28 @@
 {
-  "manifest_version": 3,
-  "name": "Dyslexia Helper",
-  "version": "1.0",
-  "description": "Make any website easier to read with dyslexia-friendly fonts, spacing, and soft background colors.",
-  "permissions": ["storage", "scripting"],
-  "action": {
-    "default_popup": "popup.html"
-  },
-  "content_scripts": [
-    {
-      "matches": ["http://*/*", "https://*/*"],
-      "exclude_matches": [
-        "https://chrome.google.com/webstore/*",
-        "https://chromewebstore.google.com/*"
-      ],
-      "js": ["content.js"],
-      "css": ["styles.css"],
-      "run_at": "document_idle"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "fonts/OpenDyslexic-Regular.otf",
-        "fonts/Lexend-Regular.ttf"
-      ],
-      "matches": ["http://*/*", "https://*/*"]
-    }
-  ]
+    "manifest_version": 3,
+    "name": "Dyslexia Helper",
+    "version": "1.0",
+    "description": "Make websites easier to read with dyslexia-friendly fonts, spacing, and soft background colors.",
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "icons": {
+        "128": "icons/icon128.png"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "fonts/OpenDyslexic-Regular.otf",
+                "fonts/Lexend-Regular.ttf"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
 }
