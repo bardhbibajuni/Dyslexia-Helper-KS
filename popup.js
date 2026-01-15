@@ -1,3 +1,9 @@
+// popup.js (FULL, WORKING)
+// - Terms acceptance works (supports BOTH: your old mini-toggle #termsToggle AND a real checkbox #termsCheckbox)
+// - Terms section hides ONLY after you turn ON, and ONLY on the NEXT popup open (so it won’t “vanish in front of eyes”)
+// - No refresh needed: applies instantly to current tab using activeTab + scripting injection
+// - Avoids chrome:// and Chrome Web Store errors
+
 const DEFAULT_SETTINGS = {
     enabled: false,
     font: "Original Font",
@@ -5,6 +11,7 @@ const DEFAULT_SETTINGS = {
     wordSpacing: 0,
     bgEnabled: false,
     bgColor: "#ffffff",
+
     acceptedTerms: false,
     termsDismissed: false
 };
@@ -24,28 +31,29 @@ const PRESETS = {
 
 let currentSettings = { ...DEFAULT_SETTINGS };
 
+// UI refs
 let popupContainer;
-let mainViewEl, termsViewEl, backBtn;
-let openTermsInline, openTermsFooter;
+let mainViewEl, termsViewEl, backBtn, openTermsInline;
 
 let toggleEl, fontSelectEl;
 let letterBar, wordBar, letterCircle, wordCircle;
 let fontPreviewText, letterPreviewText, wordPreviewText;
 let letterValueEl, wordValueEl;
-let colorOptions;
-let resetBtn;
-let saveIndicatorEl;
-
+let colorOptions, resetBtn, saveIndicatorEl;
 let presetButtons;
 
 let termsAcceptSection;
-let termsCheckbox;
+let termsToggle;      // old UI: div.mini-toggle
+let termsCheckbox;    // new UI: input[type=checkbox]
 let termsRequiredBanner;
 
 let letterSliderCtrl, wordSliderCtrl;
-let savedTimer;
-let applyTimer;
+let savedTimer, applyTimer;
 
+// prevent the terms section from hiding instantly (only hide on next popup open)
+let sessionJustDismissedTerms = false;
+
+/* ---------- helpers ---------- */
 function getFontFamily(fontLabel) {
     switch (fontLabel) {
         case "OpenDyslexic": return '"OpenDyslexic", sans-serif';
@@ -67,7 +75,6 @@ function setSaveState(state) {
     }
 }
 
-/** ✅ Return false for pages we are not allowed to access */
 function isInjectableUrl(url) {
     if (!url || typeof url !== "string") return false;
 
@@ -80,41 +87,38 @@ function isInjectableUrl(url) {
     return url.startsWith("http://") || url.startsWith("https://");
 }
 
-/* ✅ Apply changes instantly to the active tab, but skip blocked pages */
+/* ---------- apply to active tab (activeTab, no broad host perms) ---------- */
 function scheduleApplyToActiveTab() {
     if (applyTimer) clearTimeout(applyTimer);
-    applyTimer = setTimeout(() => applyToActiveTab(), 60);
+    applyTimer = setTimeout(applyToActiveTab, 60);
 }
 
 function applyToActiveTab() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tab = tabs && tabs[0];
-        if (!tab || !tab.id) return;
+        if (!tab?.id || !isInjectableUrl(tab.url)) return;
 
-        if (!isInjectableUrl(tab.url)) return;
+        chrome.scripting.insertCSS(
+            { target: { tabId: tab.id, allFrames: true }, files: ["styles.css"] },
+            () => {
+                void chrome.runtime.lastError;
 
-        // Try messaging existing content script first
-        chrome.tabs.sendMessage(tab.id, { type: "APPLY_SETTINGS", settings: currentSettings }, () => {
-            const hadNoReceiver = !!chrome.runtime.lastError;
-
-            if (!hadNoReceiver) return;
-
-            // Inject CSS then JS then message again
-            chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ["styles.css"] }, () => {
-                if (chrome.runtime.lastError) return;
-
-                chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["content.js"] }, () => {
-                    if (chrome.runtime.lastError) return;
-
-                    chrome.tabs.sendMessage(tab.id, { type: "APPLY_SETTINGS", settings: currentSettings }, () => {
+                chrome.scripting.executeScript(
+                    { target: { tabId: tab.id, allFrames: true }, files: ["content.js"] },
+                    () => {
                         void chrome.runtime.lastError;
-                    });
-                });
-            });
-        });
+
+                        chrome.tabs.sendMessage(tab.id, { type: "APPLY_SETTINGS", settings: currentSettings }, () => {
+                            void chrome.runtime.lastError;
+                        });
+                    }
+                );
+            }
+        );
     });
 }
 
+/* ---------- storage ---------- */
 function saveSettingsToStorage() {
     setSaveState("saving");
     if (savedTimer) clearTimeout(savedTimer);
@@ -125,46 +129,54 @@ function saveSettingsToStorage() {
     });
 }
 
-/* scroll inside popup container */
+/* ---------- scroll ---------- */
 function scrollToSection(el) {
     if (!popupContainer || !el) return;
 
     const containerRect = popupContainer.getBoundingClientRect();
     const elRect = el.getBoundingClientRect();
-
     const currentScroll = popupContainer.scrollTop;
     const offsetTop = (elRect.top - containerRect.top) + currentScroll;
 
-    const target = Math.max(0, offsetTop - 12);
-    popupContainer.scrollTo({ top: target, behavior: "smooth" });
+    popupContainer.scrollTo({ top: Math.max(0, offsetTop - 12), behavior: "smooth" });
 }
 
-/* ===== Views ===== */
+/* ---------- views ---------- */
 function showTerms() {
+    if (!mainViewEl || !termsViewEl) return;
+
     mainViewEl.classList.remove("active-view");
     termsViewEl.classList.add("active-view");
     termsViewEl.setAttribute("aria-hidden", "false");
     mainViewEl.setAttribute("aria-hidden", "true");
 
-    popupContainer.classList.add("lock-scroll");
-    popupContainer.scrollTop = 0;
+    // lock container scroll in terms view (your CSS uses this)
+    if (popupContainer) {
+        popupContainer.classList.add("lock-scroll");
+        popupContainer.scrollTop = 0;
+    }
 }
 
 function showMain() {
+    if (!mainViewEl || !termsViewEl) return;
+
     termsViewEl.classList.remove("active-view");
     mainViewEl.classList.add("active-view");
     mainViewEl.setAttribute("aria-hidden", "false");
     termsViewEl.setAttribute("aria-hidden", "true");
 
-    // ✅ unlock scrolling again
-    popupContainer.classList.remove("lock-scroll");
+    // IMPORTANT: unlock scroll so popup can scroll down again
+    if (popupContainer) popupContainer.classList.remove("lock-scroll");
 }
 
-/* ===== UI Updates ===== */
+/* ---------- UI updates ---------- */
 function updateToggleUI() {
-    const canEnable = !!currentSettings.acceptedTerms;
+    if (!toggleEl) return;
 
-    if (currentSettings.enabled && canEnable) {
+    const canEnable = !!currentSettings.acceptedTerms;
+    const isOn = !!currentSettings.enabled && canEnable;
+
+    if (isOn) {
         toggleEl.classList.add("active");
         toggleEl.setAttribute("aria-checked", "true");
     } else {
@@ -174,23 +186,28 @@ function updateToggleUI() {
 }
 
 function updateFontUI() {
+    if (!fontSelectEl || !fontPreviewText) return;
+
     const options = Array.from(fontSelectEl.options);
     const index = options.findIndex(opt => opt.text.trim() === currentSettings.font);
     if (index >= 0) fontSelectEl.selectedIndex = index;
+
     fontPreviewText.style.fontFamily = getFontFamily(currentSettings.font);
 }
 
 function updateLetterPreview() {
-    letterPreviewText.style.letterSpacing = `${currentSettings.letterSpacing}px`;
+    if (letterPreviewText) letterPreviewText.style.letterSpacing = `${currentSettings.letterSpacing}px`;
     if (letterValueEl) letterValueEl.textContent = `${currentSettings.letterSpacing} px`;
 }
 
 function updateWordPreview() {
-    wordPreviewText.style.wordSpacing = `${currentSettings.wordSpacing}px`;
+    if (wordPreviewText) wordPreviewText.style.wordSpacing = `${currentSettings.wordSpacing}px`;
     if (wordValueEl) wordValueEl.textContent = `${currentSettings.wordSpacing} px`;
 }
 
 function updateBgUI() {
+    if (!colorOptions) return;
+
     colorOptions.forEach(btn => {
         const label = btn.textContent.trim();
         const color = BG_COLORS[label] || "#ffffff";
@@ -200,16 +217,26 @@ function updateBgUI() {
 }
 
 function updateTermsUI() {
-    if (!termsAcceptSection || !termsCheckbox) return;
+    if (!termsAcceptSection) return;
 
-    termsCheckbox.checked = !!currentSettings.acceptedTerms;
-
-    // ✅ Hide terms section ONLY after user successfully turns ON once
-    if (currentSettings.termsDismissed) {
-        termsAcceptSection.classList.add("hidden");
-    } else {
-        termsAcceptSection.classList.remove("hidden");
+    // keep both UIs in sync if both exist
+    if (termsCheckbox) {
+        termsCheckbox.checked = !!currentSettings.acceptedTerms;
     }
+
+    if (termsToggle) {
+        if (currentSettings.acceptedTerms) {
+            termsToggle.classList.add("active");
+            termsToggle.setAttribute("aria-checked", "true");
+        } else {
+            termsToggle.classList.remove("active");
+            termsToggle.setAttribute("aria-checked", "false");
+        }
+    }
+
+    // hide ONLY on next open after turning ON (no “vanish in front of eyes”)
+    const shouldHide = !!currentSettings.termsDismissed && !sessionJustDismissedTerms;
+    termsAcceptSection.style.display = shouldHide ? "none" : "";
 }
 
 function applySettingsToUI() {
@@ -225,7 +252,7 @@ function applySettingsToUI() {
     updateTermsUI();
 }
 
-/* ===== Slider setup ===== */
+/* ---------- sliders ---------- */
 function setupSlider(bar, circle, maxValue, initialValue, onChange) {
     let currentValue = initialValue || 0;
 
@@ -239,7 +266,7 @@ function setupSlider(bar, circle, maxValue, initialValue, onChange) {
 
     requestAnimationFrame(positionCircle);
 
-    bar.addEventListener("click", e => {
+    bar.addEventListener("click", (e) => {
         const rect = bar.getBoundingClientRect();
         let x = e.clientX - rect.left;
         x = Math.max(0, Math.min(rect.width, x));
@@ -258,6 +285,7 @@ function setupSlider(bar, circle, maxValue, initialValue, onChange) {
     };
 }
 
+/* ---------- presets ---------- */
 function applyPreset(name) {
     const preset = PRESETS[name];
     if (!preset) return;
@@ -267,13 +295,11 @@ function applyPreset(name) {
     saveSettingsToStorage();
 }
 
-/* ===== Terms gating ===== */
+/* ---------- terms gating ---------- */
 function showTermsRequired() {
     if (!termsRequiredBanner) return;
     termsRequiredBanner.classList.add("show");
-
     scrollToSection(termsAcceptSection);
-
     setTimeout(() => termsRequiredBanner.classList.remove("show"), 3500);
 }
 
@@ -290,30 +316,43 @@ function tryToggleExtension() {
 
     currentSettings.enabled = !currentSettings.enabled;
 
-    // ✅ Only when turning ON (and accepted), dismiss terms section
+    // if turning ON successfully, mark dismissed but do NOT hide immediately this session
     if (currentSettings.enabled && currentSettings.acceptedTerms) {
         currentSettings.termsDismissed = true;
+        sessionJustDismissedTerms = true; // prevents instant hide
     }
 
     updateToggleUI();
+    // DO NOT call updateTermsUI here if you want zero visual changes.
+    // But we still keep it consistent (it won't hide because sessionJustDismissedTerms=true).
     updateTermsUI();
     saveSettingsToStorage();
 }
 
-function onTermsCheckboxChanged() {
-    currentSettings.acceptedTerms = !!termsCheckbox.checked;
+// supports BOTH checkbox UI and mini-toggle UI
+function setTermsAccepted(nextValue) {
+    currentSettings.acceptedTerms = !!nextValue;
 
     if (!currentSettings.acceptedTerms) {
         currentSettings.enabled = false;
         currentSettings.termsDismissed = false;
+        sessionJustDismissedTerms = false;
     }
 
-    applySettingsToUI();
+    updateTermsUI();
+    updateToggleUI();
     saveSettingsToStorage();
 }
 
-/* ===== Start ===== */
+function toggleTermsAccepted() {
+    setTermsAccepted(!currentSettings.acceptedTerms);
+}
+
+/* ---------- init ---------- */
 document.addEventListener("DOMContentLoaded", () => {
+    // reset per-open session flag
+    sessionJustDismissedTerms = false;
+
     popupContainer = document.getElementById("popupContainer");
 
     mainViewEl = document.getElementById("mainView");
@@ -321,15 +360,13 @@ document.addEventListener("DOMContentLoaded", () => {
     backBtn = document.getElementById("backBtn");
 
     openTermsInline = document.getElementById("openTermsInline");
-    openTermsFooter = document.getElementById("openTermsFooter");
-
     if (openTermsInline) openTermsInline.addEventListener("click", showTerms);
-    if (openTermsFooter) openTermsFooter.addEventListener("click", showTerms);
+    if (backBtn) backBtn.addEventListener("click", showMain);
 
-    backBtn.addEventListener("click", showMain);
-
+    // Main toggle
     toggleEl = document.getElementById("mainToggle");
 
+    // Inputs
     fontSelectEl = document.getElementById("fontSelect");
     letterBar = document.getElementById("letterBar");
     wordBar = document.getElementById("wordBar");
@@ -349,45 +386,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
     presetButtons = document.querySelectorAll(".preset-btn");
 
+    // Terms refs (support both designs)
     termsAcceptSection = document.getElementById("termsAcceptSection");
-    termsCheckbox = document.getElementById("termsCheckbox");
+    termsToggle = document.getElementById("termsToggle");       // old mini-toggle
+    termsCheckbox = document.getElementById("termsCheckbox");   // new checkbox (your screenshot)
     termsRequiredBanner = document.getElementById("termsRequiredBanner");
 
-    chrome.storage.local.get(DEFAULT_SETTINGS, stored => {
+    chrome.storage.local.get(DEFAULT_SETTINGS, (stored) => {
         currentSettings = { ...DEFAULT_SETTINGS, ...stored };
 
-        letterSliderCtrl = setupSlider(letterBar, letterCircle, 10, currentSettings.letterSpacing, value => {
-            currentSettings.letterSpacing = value;
-            updateLetterPreview();
-            saveSettingsToStorage();
-        });
+        // sliders
+        if (letterBar && letterCircle) {
+            letterSliderCtrl = setupSlider(letterBar, letterCircle, 10, currentSettings.letterSpacing, (value) => {
+                currentSettings.letterSpacing = value;
+                updateLetterPreview();
+                saveSettingsToStorage();
+            });
+        }
 
-        wordSliderCtrl = setupSlider(wordBar, wordCircle, 30, currentSettings.wordSpacing, value => {
-            currentSettings.wordSpacing = value;
-            updateWordPreview();
-            saveSettingsToStorage();
-        });
+        if (wordBar && wordCircle) {
+            wordSliderCtrl = setupSlider(wordBar, wordCircle, 30, currentSettings.wordSpacing, (value) => {
+                currentSettings.wordSpacing = value;
+                updateWordPreview();
+                saveSettingsToStorage();
+            });
+        }
 
         applySettingsToUI();
         setSaveState("saved");
 
+        // Apply once on open (counts as user gesture => activeTab allowed)
         scheduleApplyToActiveTab();
     });
 
-    toggleEl.addEventListener("click", tryToggleExtension);
-    toggleEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            tryToggleExtension();
-        }
-    });
+    // Main toggle events
+    if (toggleEl) {
+        toggleEl.addEventListener("click", tryToggleExtension);
+        toggleEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                tryToggleExtension();
+            }
+        });
+    }
 
-    fontSelectEl.addEventListener("change", () => {
-        currentSettings.font = fontSelectEl.options[fontSelectEl.selectedIndex].text.trim();
-        updateFontUI();
-        saveSettingsToStorage();
-    });
+    // Font change
+    if (fontSelectEl) {
+        fontSelectEl.addEventListener("change", () => {
+            currentSettings.font = fontSelectEl.options[fontSelectEl.selectedIndex].text.trim();
+            updateFontUI();
+            saveSettingsToStorage();
+        });
+    }
 
+    // Background buttons
     colorOptions.forEach(btn => {
         btn.addEventListener("click", () => {
             const label = btn.textContent.trim();
@@ -398,16 +450,34 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // Presets
     presetButtons.forEach(btn => btn.addEventListener("click", () => applyPreset(btn.dataset.preset)));
 
-    resetBtn.addEventListener("click", () => {
-        const accepted = !!currentSettings.acceptedTerms;
-        const dismissed = !!currentSettings.termsDismissed;
+    // Reset (keep terms state)
+    if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+            const accepted = !!currentSettings.acceptedTerms;
+            const dismissed = !!currentSettings.termsDismissed;
 
-        currentSettings = { ...DEFAULT_SETTINGS, acceptedTerms: accepted, termsDismissed: dismissed };
-        applySettingsToUI();
-        saveSettingsToStorage();
-    });
+            currentSettings = { ...DEFAULT_SETTINGS, acceptedTerms: accepted, termsDismissed: dismissed };
+            applySettingsToUI();
+            saveSettingsToStorage();
+        });
+    }
 
-    if (termsCheckbox) termsCheckbox.addEventListener("change", onTermsCheckboxChanged);
+    // Terms acceptance (checkbox)
+    if (termsCheckbox) {
+        termsCheckbox.addEventListener("change", () => setTermsAccepted(termsCheckbox.checked));
+    }
+
+    // Terms acceptance (old mini-toggle)
+    if (termsToggle) {
+        termsToggle.addEventListener("click", toggleTermsAccepted);
+        termsToggle.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleTermsAccepted();
+            }
+        });
+    }
 });
