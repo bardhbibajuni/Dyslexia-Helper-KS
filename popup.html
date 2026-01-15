@@ -63,7 +63,7 @@
                 <div class="section-header">
                     <div class="section-title-group">
                         <h2>Extension status</h2>
-                        <p class="section-description">Turn the helper on or off for all sites.</p>
+                        <p class="section-description">Turn the helper on or off for the current tab.</p>
                     </div>
 
                     <div class="toggle" id="mainToggle" role="switch" aria-checked="false" tabindex="0">
@@ -185,7 +185,7 @@
                 </div>
             </section>
 
-            <!-- ===== TERMS ACCEPT SECTION (BOTTOM) ===== -->
+            <!-- ===== TERMS ACCEPT SECTION ===== -->
             <section class="section terms-accept" id="termsAcceptSection">
                 <div class="terms-required-banner" id="termsRequiredBanner" role="alert" aria-live="polite">
                     <strong>Action required</strong><br />
@@ -196,34 +196,22 @@
                     <div class="section-title-group">
                         <h2>Terms acceptance</h2>
                         <p class="section-description">
-                            Please read the
+                            You must accept the
                             <button class="terms-link" id="openTermsInline" type="button">Terms &amp;
                                 Conditions</button>
-                            and then accept below.
-                        </p>
-                        <p class="section-description small">
-                            You must accept to enable the extension.
+                            to enable the extension.
                         </p>
                     </div>
-                </div>
 
-                <!-- ✅ Checkbox UI -->
-                <div class="terms-check-row">
-                    <label class="terms-check" for="termsCheckbox">
+                    <label class="terms-check">
                         <input type="checkbox" id="termsCheckbox" />
-                        <span class="terms-check-ui" aria-hidden="true"></span>
-                        <span class="terms-check-text">I accept the Terms &amp; Conditions</span>
+                        <span>Accept</span>
                     </label>
                 </div>
             </section>
 
             <footer class="footer">
-                <p class="footer-note" style="text-align:center;">
-                    © 2026 Dyslexia Helper. All rights reserved.
-                    <button class="footer-terms-link" id="openTermsFooter" type="button">
-                        Terms &amp; Conditions
-                    </button>
-                </p>
+                <p class="footer-note" style="text-align:center;">© 2026 Dyslexia Helper. All rights reserved.</p>
             </footer>
         </div>
 
@@ -395,10 +383,17 @@
                         </p>
                         <p>
                             <strong>Number:</strong> +383 43 877 793<br />
-                            <strong>Contact:</strong> DyslexiaHelper@gmail.com<br />
+                            <strong>Contact:</strong> DyslexiaHelper.KS@gmail.com<br />
                             <strong>Organization:</strong> FIEK, University of Prishtina
                         </p>
                     </div>
+                </div>
+
+                <div class="terms-footer-accept">
+                    <label class="terms-check big">
+                        <input type="checkbox" id="termsCheckbox" />
+                        <span>I Accept the Terms</span>
+                    </label>
                 </div>
             </section>
         </div>
