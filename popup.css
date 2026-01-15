@@ -899,55 +899,68 @@ body {
     align-items: center;
 }
 
-/* ✅ Checkbox component */
+/* Checkbox style */
 .terms-check {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 900;
+    color: #0f172a;
     user-select: none;
 }
 
-.terms-check input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
+.terms-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #22c55e;
+    cursor: pointer;
 }
 
-.terms-check-ui {
-    width: 22px;
-    height: 22px;
-    border-radius: 7px;
-    border: 2px solid rgba(59, 130, 246, 0.55);
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 2px 7px rgba(15, 23, 42, 0.10);
-    display: inline-flex;
+.terms-check.big {
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+/* Hide helper class */
+.hidden {
+    display: none !important;
+}
+
+/* Terms view */
+.terms-header-row {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    transition: transform 120ms ease, background 160ms ease, border-color 160ms ease;
+    gap: 10px;
 }
 
-.terms-check-text {
+.btn-back {
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    background: rgba(249, 250, 251, 0.96);
+    color: #334155;
     font-size: 12px;
-    font-weight: 800;
-    color: #0f172a;
-}
-
-.terms-check input:focus-visible+.terms-check-ui {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
-}
-
-.terms-check input:checked+.terms-check-ui {
-    background: rgba(34, 197, 94, 0.25);
-    border-color: rgba(34, 197, 94, 0.70);
-    transform: scale(1.03);
-}
-
-.terms-check input:checked+.terms-check-ui::after {
-    content: "✓";
     font-weight: 900;
-    font-size: 14px;
-    color: #065f46;
-    line-height: 1;
+    border-radius: 999px;
+    padding: 7px 11px;
+    cursor: pointer;
+}
+
+.terms-clip {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 250, 251, 0.94));
+}
+
+.terms-content {
+    max-height: 460px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 14px 14px 28px;
+}
+
+.terms-footer-accept {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-start;
 }
